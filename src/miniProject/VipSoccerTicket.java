@@ -10,7 +10,10 @@ public class VipSoccerTicket {
 
     static final String USER = "adam";
     static final String PASS = "1234";
-    static final int MAX_TICKETS = 10; // 경기당 최대 티켓 예매 수량
+    static final int MAX_ManUTICKETS = 10; // 맨유 경기당 최대 티켓 예매 수량
+    static final int MAX_AsnUTICKETS = 10; // 아스날 경기당 최대 티켓 예매 수량
+    static final int MAX_CheTICKETS = 10; // 첼시 경기당 최대 티켓 예매 수량
+    static final int MAX_LivUTICKETS = 10; // 리버풀 경기당 최대 티켓 예매 수량
     static final int MAX_ID = 1;    // 아이디당 최대 티켓 예매 수량
 
     public static void main(String[] args) {
@@ -70,7 +73,7 @@ public class VipSoccerTicket {
                         location = "올드 트레포드"; // 맨체스터 유나이티드의 경기장 추가
                         // 티켓 예매 수량 확인
                         int ticketCount1 = getTicketCount(stmt, date);
-                        if (ticketCount1 >= MAX_TICKETS) {
+                        if (ticketCount1 >= MAX_ManUTICKETS) {
                             System.out.println("이 날짜의 티켓 예매 가능 수량을 초과했습니다. 다른 날짜를 선택하세요.");
                             continue;
                         }
@@ -80,7 +83,7 @@ public class VipSoccerTicket {
                         location = "에미레이트 스타디움"; // 아스날의 경기장 추가
                         // 티켓 예매 수량 확인
                         int ticketCount2 = getTicketCount(stmt, date);
-                        if (ticketCount2 >= MAX_TICKETS) {
+                        if (ticketCount2 >= MAX_AsnUTICKETS) {
                             System.out.println("이 날짜의 티켓 예매 가능 수량을 초과했습니다. 다른 날짜를 선택하세요.");
                             continue;
                         }
@@ -90,7 +93,7 @@ public class VipSoccerTicket {
                         location = "스탬포드 브릿지"; // 첼시의 경기장 추가
                         // 티켓 예매 수량 확인
                         int ticketCount3 = getTicketCount(stmt, date);
-                        if (ticketCount3 >= MAX_TICKETS) {
+                        if (ticketCount3 >= MAX_CheTICKETS) {
                             System.out.println("이 날짜의 티켓 예매 가능 수량을 초과했습니다. 다른 날짜를 선택하세요.");
                             continue;
                         }
@@ -100,7 +103,7 @@ public class VipSoccerTicket {
                         location = "안필드"; // 리버풀의 경기장 추가
                         // 티켓 예매 수량 확인
                         int ticketCount4 = getTicketCount(stmt, date);
-                        if (ticketCount4 >= MAX_TICKETS) {
+                        if (ticketCount4 >= MAX_LivUTICKETS) {
                             System.out.println("이 날짜의 티켓 예매 가능 수량을 초과했습니다. 다른 날짜를 선택하세요.");
                             continue;
                         }
@@ -182,7 +185,6 @@ public class VipSoccerTicket {
     }
 
     // 티켓수량을 데이터베이스에 추가하는 메서드
-// 티켓수량을 데이터베이스에 추가하는 메서드
     static int addTicket(Statement stmt, int id, String team, String date, String location) throws SQLException {
         String sql = "INSERT INTO VIPTICKET (TICKET_ID, id, TEAM, MATCHDATE, LOCATION) VALUES (ticket_seq.NEXTVAL," + id + ", '" + team + "', '" + date + "', '" + location + "')";
 
