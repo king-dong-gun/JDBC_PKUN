@@ -30,7 +30,7 @@ public class VipSoccerTicket {
                 System.out.println("==========================DB 연결 성공==========================");
 
                 // 아이디 입력
-                System.out.println("아이디를 입력하세요 (형식: 숫자 4자리)");
+                System.out.print("아이디를 입력하세요 (형식: 숫자 4자리) >> ");
                 String ticketId = sc.nextLine();
 
                 // 입력된 아이디가 숫자 4자리 형식에 맞는지 확인
@@ -39,16 +39,17 @@ public class VipSoccerTicket {
                     continue;
                 }
 
-                System.out.println("아이디 입력이 완료되었습니다.");
                 int ticketIdInt = Integer.parseInt(ticketId);
                 // 동일한 아이디가 있는지 확인
                 if (isTicketIdExists(stmt, ticketIdInt)) {
                     System.out.println("이미 예약된 아이디입니다.");
                     continue;
+                } else {
+                    System.out.println("아이디 입력이 완료되었습니다.");
                 }
 
                 // 날짜 선택
-                System.out.println("예매하실 날짜를 선택하세요 (형식: 2024/MM/dd)");
+                System.out.print("예매하실 날짜를 선택하세요 (형식: 2024/MM/dd) >> ");
                 String date = sc.nextLine();
 
                 // 입력된 날짜가 MM/dd 형식에 맞는지 확인
@@ -111,20 +112,20 @@ public class VipSoccerTicket {
                 }
 
                 int result = addTicket(stmt, ticketIdInt, team, date, location);
-                System.out.println("result = " + result);
+                System.out.println("구매티켓 수량 >>  " + result);
 
 
                 // 티켓정보 확인
                 String dateData = date;
                 ResultSet rs = getTicket(stmt, team);
-                System.out.println("[" + dateData + " 티켓 예매 정보]");
+                System.out.println("[" + dateData + ", 티켓 예매 정보]");
                 while (rs.next()) {
                     String id = rs.getString("id");
                     String titleData = rs.getString("team");
                     String contentData = rs.getString("location");
-                    System.out.println("예약 ID: " + id);
-                    System.out.println("팀: " + titleData);
-                    System.out.println("위치: " + contentData);
+                    System.out.println("예약 ID >> " + id);
+                    System.out.println("팀 >> " + titleData);
+                    System.out.println("경기장 >> " + contentData);
                     System.out.println();
                 }
                 rs.close();
