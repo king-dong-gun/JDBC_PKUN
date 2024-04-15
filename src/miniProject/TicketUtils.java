@@ -112,22 +112,23 @@ public class TicketUtils {
     }
 
 
-    // 사용자에게 티켓 정보를 제공하는 메서드
-    static ResultSet getTicket(Statement stmt, String team) throws SQLException {
-        String sql = "SELECT * FROM VIPTICKET WHERE TEAM='" + team + "'";
+    static ResultSet getTicket(Statement stmt, String date) throws SQLException {
+        String sql = "SELECT * FROM VIPTICKET WHERE MATCH_DATE='" + date + "'";
         return stmt.executeQuery(sql);
     }
 
-    // 예약정보를 제공하는 메소드
-    static void printTicketInfo(Statement stmt, String team, String date) throws SQLException {
-        String dateData = date;
-        ResultSet rs = getTicket(stmt, team);
-        System.out.println("[" + dateData + ", 티켓 예매 정보]");
+
+    // 날짜별 티켓 정보를 출력하는 메서드
+    static void printTicketInfo(Statement stmt, String date) throws SQLException {
+        ResultSet rs = getTicket(stmt, date);
+        System.out.println("[" + date + ", 티켓 예매 정보]");
         while (rs.next()) {
-            String titleData = rs.getString("team");
-            String contentData = rs.getString("location");
-            System.out.println("팀 >> " + titleData);
-            System.out.println("경기장 >> " + contentData);
+            String id = rs.getString("ID");
+            String team = rs.getString("TEAM");
+            String location = rs.getString("LOCATION");
+            System.out.println("ID >> " + id);
+            System.out.println("팀 >> " + team);
+            System.out.println("경기장 >> " + location);
             System.out.println();
         }
         rs.close();

@@ -94,8 +94,10 @@ public class TicketMain {
 
                 // 데이터베이스에 티켓 예약 정보 저장
                 int result = addTicket(stmt, Integer.parseInt(userId), team, date, location);
-                System.out.println("구매티켓 수량: " + result);
+                printTicketInfo(stmt, date);
 
+                System.out.println("구매티켓 수량: " + result);
+                System.out.println("마지막 티켓 ID 정보를 입력해주세요.");
 
                 System.out.print("구매하신 티켓 ID: ");
                 int ticketId = sc.nextInt();
@@ -103,8 +105,6 @@ public class TicketMain {
 
                 // TicketUtils 클래스의 메서드를 호출하여 티켓을 구매하고 티켓 수량을 업데이트
                 purchaseTicket(conn, stmt, ticketId);
-
-                printTicketInfo(stmt, team, date);
 
                 if (!continueBooking(sc)) break;
             }

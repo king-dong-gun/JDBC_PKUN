@@ -46,5 +46,7 @@ FROM USERINFO;
 drop table VIPTICKET;
 
 drop SEQUENCE ticket_seq;
+
+
 TRUNCATE TABLE VIPTICKET;
 
