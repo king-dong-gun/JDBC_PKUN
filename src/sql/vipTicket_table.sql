@@ -1,11 +1,32 @@
--- 티켓 테이블 생성
 CREATE TABLE VIPTICKET
 (
-    TICKET_ID NUMBER PRIMARY KEY,
-    ID        NUMBER(4),
-    TEAM      VARCHAR2(50),
-    MATCHDATE VARCHAR2(50),
-    LOCATION  VARCHAR2(50)
+    ID               NUMBER PRIMARY KEY,
+    TEAM             VARCHAR2(50),
+    LOCATION         VARCHAR2(50),
+    MATCH_DATE       VARCHAR2(50),
+    MAX_TICKETS NUMBER DEFAULT 10 -- 최대 티켓 수량을 추적하는 열만 남깁니다.
+);
+
+
+
+SELECT USERINFO.UserID,
+       USERINFO.Name,
+       USERINFO.PhoneNumber,
+       USERINFO.Email,
+       VIPTICKET.TEAM,
+       VIPTICKET.MATCH_DATE,
+       VIPTICKET.LOCATION
+FROM VIPTICKET
+         INNER JOIN USERINFO ON VIPTICKET.ID = USERINFO.UserID
+WHERE USERINFO.UserID = '사용자 아이디';
+
+CREATE TABLE USERINFO
+(
+    UserID      VARCHAR(20) PRIMARY KEY,
+    Password    VARCHAR2(20),
+    Name        VARCHAR(50),
+    Email       VARCHAR(100),
+    PhoneNumber VARCHAR(20)
 );
 
 COMMIT;
@@ -19,5 +40,11 @@ CREATE SEQUENCE ticket_seq
 SELECT *
 FROM VIPTICKET;
 
+SELECT *
+FROM USERINFO;
+
+drop table VIPTICKET;
+
+drop SEQUENCE ticket_seq;
 TRUNCATE TABLE VIPTICKET;
 

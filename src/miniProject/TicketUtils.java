@@ -6,6 +6,15 @@ import java.util.regex.Pattern;
 
 public class TicketUtils {
 
+    // 입력된 아이디와 비밀번호가 일치하는 사용자가 있는지 확인하는 메소드
+    static boolean isLoginValid(Statement stmt, String userId, String password) throws SQLException {
+        String sql = "SELECT * FROM USERINFO WHERE UserID = '" + userId + "' AND Password = '" + password + "'";
+        ResultSet rs = stmt.executeQuery(sql);
+        boolean isValid = rs.next();
+        rs.close();
+        return isValid;
+    }
+
     // 아이디를 입력받는 메소드
     static String getValidTicketId(Scanner sc, Statement stmt) throws SQLException {
         while (true) {
@@ -86,7 +95,7 @@ public class TicketUtils {
 
     // 티켓수량을 데이터베이스에서 가져오는 메서드
     static int getTicketCount(Statement stmt, String date) throws SQLException {
-        String sql = "SELECT COUNT(*) AS COUNT FROM VIPTICKET WHERE MATCHDATE = '" + date + "'";
+        String sql = "SELECT COUNT(*) AS COUNT FROM VIPTICKET WHERE MATCH_DATE = '" + date + "'";
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
         int count = rs.getInt("count");
@@ -94,14 +103,14 @@ public class TicketUtils {
         return count;
     }
 
-
     // 티켓수량을 데이터베이스에 추가하는 메서드
-    static int addTicket(Statement stmt, int id, String team, String date, String location) throws SQLException {
-        String sql = "INSERT INTO VIPTICKET (TICKET_ID, id, TEAM, MATCHDATE, LOCATION) VALUES (ticket_seq.NEXTVAL," + id + ", '" + team + "', '" + date + "', '" + location + "')";
+    static int addTicket(Statement stmt, int userId, String team, String date, String location) throws SQLException {
+        String sql = "INSERT INTO VIPTICKET (ID, TEAM, LOCATION, MATCH_DATE) VALUES (ticket_seq.NEXTVAL, '" + team + "', '" + location + "', '" + date + "')";
 
         int result = stmt.executeUpdate(sql);
         return result;
     }
+
 
     // 사용자에게 티켓 정보를 제공하는 메서드
     static ResultSet getTicket(Statement stmt, String team) throws SQLException {
@@ -115,10 +124,8 @@ public class TicketUtils {
         ResultSet rs = getTicket(stmt, team);
         System.out.println("[" + dateData + ", 티켓 예매 정보]");
         while (rs.next()) {
-            String id = rs.getString("id");
             String titleData = rs.getString("team");
             String contentData = rs.getString("location");
-            System.out.println("예약 ID >> " + id);
             System.out.println("팀 >> " + titleData);
             System.out.println("경기장 >> " + contentData);
             System.out.println();
@@ -132,5 +139,21 @@ public class TicketUtils {
         String choice = sc.nextLine();
         return !choice.equalsIgnoreCase("N");
     }
-}
 
+    // 구매한 티켓의 수량을 업데이트하는 메서드
+    static void purchaseTicket(Connection conn, Statement stmt, int ticketId) {
+        try {
+            // 해당 티켓의 최대 티켓 수량을 업데이트하는 쿼리
+            String updateQuery = "UPDATE VIPTICKET SET MAX_TICKETS = MAX_TICKETS - 1 WHERE ID = " + ticketId;
+            // 쿼리 실행
+            int rowsAffected = stmt.executeUpdate(updateQuery);
+            if (rowsAffected > 0) {
+                System.out.println("티켓 구매가 완료되었습니다.");
+            } else {
+                System.out.println("티켓 구매에 실패했습니다. 다시 시도해주세요.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
