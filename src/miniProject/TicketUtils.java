@@ -15,42 +15,6 @@ public class TicketUtils {
         return isValid;
     }
 
-    // 아이디를 입력받는 메소드
-    static String getValidTicketId(Scanner sc, Statement stmt) throws SQLException {
-        while (true) {
-            System.out.print("아이디를 입력하세요 (형식: 숫자 4자리) >> ");
-            String ticketId = sc.nextLine();
-            if (!isValidTicketId(ticketId)) {
-                System.out.println("잘못된 입력 형식입니다. 형식에 맞게 다시 입력해주세요.");
-                continue;
-            }
-
-            int ticketIdInt = Integer.parseInt(ticketId);
-            if (isTicketIdExists(stmt, ticketIdInt)) {
-                System.out.println("이미 예약된 아이디입니다.");
-                continue;
-            } else {
-                System.out.println("아이디 입력이 완료되었습니다.");
-                return ticketId;
-            }
-        }
-    }
-
-    // 입력된 아이디가 숫자 4자리 형식에 맞는지 확인하는 메서드
-    static boolean isValidTicketId(String ticketId) {
-        String regex = "\\d{4}";
-        return Pattern.matches(regex, ticketId);
-    }
-
-    // 입력된 아이디가 중복이 있는지 확인하는 메서드
-    static boolean isTicketIdExists(Statement stmt, int ticketId) throws SQLException {
-        String sql = "SELECT COUNT(*) AS COUNT FROM VIPTICKET WHERE ID=" + ticketId;
-        ResultSet rs = stmt.executeQuery(sql);
-        rs.next();
-        int count = rs.getInt("COUNT");
-        rs.close();
-        return count > 0;
-    }
 
     // 경기날짜를 입력받는 메소드
     static String getValidDate(Scanner sc) {
@@ -82,6 +46,23 @@ public class TicketUtils {
         sc.nextLine();
         return result;
     }
+    // 맨체스터 유나이티드 티켓정보를 가져오는 메소드
+    public static void getManUTDMatchInfo(Statement stmt) {
+        String query = "SELECT * FROM TEAM WHERE TEAM LIKE '%맨체스터%'";
+        try {
+            ResultSet rs = stmt.executeQuery(query);
+            System.out.println("맨체스터 유나이티드의 경기 정보:");
+            while (rs.next()) {
+                String matchInfo = rs.getString("TEAM");
+                String location = rs.getString("LOCATION");
+                String matchDate = rs.getString("MATCH_DATE");
+                System.out.println("경기: " + matchInfo + ", 장소: " + location + ", 일자: " + matchDate);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     // 최대 티켓 수량을 확인하는 메소드
     static boolean checkTicketAvailability(Statement stmt, String date, int maxTickets) throws SQLException {
@@ -103,15 +84,47 @@ public class TicketUtils {
         return count;
     }
 
-    // 티켓수량을 데이터베이스에 추가하는 메서드
-    static int addTicket(Statement stmt, int userId, String team, String date, String location) throws SQLException {
-        String sql = "INSERT INTO VIPTICKET (ID, TEAM, LOCATION, MATCH_DATE) VALUES (ticket_seq.NEXTVAL, '" + team + "', '" + location + "', '" + date + "')";
 
-        int result = stmt.executeUpdate(sql);
-        return result;
+    // 티켓수량을 데이터베이스에 추가하는 메서드
+    static void addTicket(Connection conn, Statement stmt, int userId, String team, String date, String location) throws SQLException {
+        int ticketCount = -1;
+
+        // (TEAM, MATCH_DATE) 조회 -> ID값을 뽑는다(변수에 저장) -> UPDATE
+        // SELECT ID, TEAM, MATCH_DATE FROM VIPTICKET WHERE (TEAM, MATCH_DATE) IN (SELECT TEAM, MATCH_DATE FROM VIPTICKET);
+        String checkQuery = "SELECT ID, TEAM, MATCH_DATE FROM VIPTICKET WHERE TEAM = ? AND MATCH_DATE = ?";
+        PreparedStatement pstmt = conn.prepareStatement(checkQuery);
+        pstmt.setString(1, team);
+        pstmt.setString(2, date);
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+            ticketCount = rs.getInt("ID");
+        }
+
+        if (ticketCount == -1) { // 조회되는 컬럼이 없으면 추가=
+            String sql = "INSERT INTO VIPTICKET (ID, TEAM, LOCATION, MATCH_DATE) VALUES (ticket_seq.NEXTVAL, '" + team + "', '" + location + "', '" + date + "')";
+            stmt.executeUpdate(sql);
+            // 티켓수 줄이는 UPDATE 문 필요
+            String checkSeq = "SELECT LAST_NUMBER FROM ALL_SEQUENCES WHERE SEQUENCE_NAME = 'TICKET_SEQ'";
+            PreparedStatement preparedStatement2 = stmt.getConnection().prepareStatement(checkSeq);
+            ResultSet rs2 = preparedStatement2.executeQuery();
+            while (rs2.next()) {
+                ticketCount = rs2.getInt("LAST_NUMBER");
+            }
+            ticketCount -= 1;
+            String updateQuery = "UPDATE VIPTICKET SET MAX_TICKETS = MAX_TICKETS - 1 WHERE ID = ?";
+            pstmt = conn.prepareStatement(updateQuery);
+            pstmt.setInt(1, ticketCount);
+            pstmt.executeUpdate();
+        } else {
+            String updateQuery = "UPDATE VIPTICKET SET MAX_TICKETS = MAX_TICKETS - 1 WHERE ID = ?";
+            pstmt = conn.prepareStatement(updateQuery);
+            pstmt.setInt(1, ticketCount);
+            pstmt.executeUpdate();
+        }
     }
 
 
+    // 경기 일자 정보 가져오는 메소드
     static ResultSet getTicket(Statement stmt, String date) throws SQLException {
         String sql = "SELECT * FROM VIPTICKET WHERE MATCH_DATE='" + date + "'";
         return stmt.executeQuery(sql);
@@ -136,25 +149,8 @@ public class TicketUtils {
 
     // 반복을 진행하는지 묻는 메소드
     static boolean continueBooking(Scanner sc) {
-        System.out.print("계속하려면 'Y'를 종료하려면 'N'을 입력하세요 >> ");
+        System.out.print("메뉴로 가시려면 'Y'를 종료하려면 'N'을 입력하세요 >> ");
         String choice = sc.nextLine();
         return !choice.equalsIgnoreCase("N");
-    }
-
-    // 구매한 티켓의 수량을 업데이트하는 메서드
-    static void purchaseTicket(Connection conn, Statement stmt, int ticketId) {
-        try {
-            // 해당 티켓의 최대 티켓 수량을 업데이트하는 쿼리
-            String updateQuery = "UPDATE VIPTICKET SET MAX_TICKETS = MAX_TICKETS - 1 WHERE ID = " + ticketId;
-            // 쿼리 실행
-            int rowsAffected = stmt.executeUpdate(updateQuery);
-            if (rowsAffected > 0) {
-                System.out.println("티켓 구매가 완료되었습니다.");
-            } else {
-                System.out.println("티켓 구매에 실패했습니다. 다시 시도해주세요.");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

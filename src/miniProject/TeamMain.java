@@ -1,3 +1,5 @@
+package miniProject;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -9,6 +11,7 @@ public class TeamMain {
     static final String JDBC_DRIVER = "oracle.jdbc.driver.OracleDriver";
     static final String DB_URL = "jdbc:oracle:thin:@localhost:1521:xe";
     static final String USER = "adam";
+
     static final String PASS = "1234";
 
     public static void main(String[] args) {
@@ -50,7 +53,7 @@ public class TeamMain {
             System.out.print("날짜를 입력해주세요(예: 2024/MM/dd): ");
             String date = sc.next();
 
-            // PreparedStatement를 사용하여 SQL Injection을 방지하고 사용자 입력을 처리합니다.
+            // PreparedStatement를 사용하여 SQL Injection을 방지하고 사용자 입력을 처리
             String selectQuery = "SELECT MAX_TICKETS FROM VIPTICKET WHERE TEAM = ? AND MATCH_DATE = ?";
             pstmt = conn.prepareStatement(selectQuery);
             pstmt.setString(1, team);
@@ -76,6 +79,6 @@ public class TeamMain {
             } catch (SQLException se) {
                 se.printStackTrace();
             }
-        }
+        } sc.close();
     }
 }

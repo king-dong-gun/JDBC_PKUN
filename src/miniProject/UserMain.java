@@ -1,9 +1,6 @@
 package miniProject;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Scanner;
 
 import static miniProject.UserUtils.*;
@@ -30,30 +27,50 @@ public class UserMain {
             String email;
             String phoneNumber;
             while (true) {
-                userId = inPutId(sc, stmt); // 아이디 입력
-                if (isUserIdExists(stmt, userId)) {
-                    System.out.println("이미 사용 중인 아이디입니다. 다른 아이디를 입력해주세요.");
-                    continue;
-                }
-                userPass = inputPassword(sc); // 비밀번호 입력
-                if (userPass.length() < 6) {
-                    System.out.println("비밀번호 길이가 올바르지 않습니다. (최소 6자 이상)");
-                    continue;
-                } else {
-                    System.out.println("비밀번호 입력이 완료되었습니다.");
+                while (true) {
+                    userId = inPutId(sc, stmt); // 아이디 입력
+                    if (isUserIdExists(stmt, userId)) {
+                        System.out.println("이미 사용 중인 아이디입니다. 다른 아이디를 입력해주세요.");
+                    } else {
+                        break; // 아이디가 유효한 경우 루프를 종료하고 비밀번호 입력 단계로 이동
+                    }
                 }
 
-                System.out.println("이름을 입력하세요 >> ");
+                while (true) {
+                    userPass = inputPassword(sc); // 비밀번호 입력
+                    if (userPass.length() < 6) {
+                        System.out.println("비밀번호 길이가 올바르지 않습니다. (최소 6자 이상)");
+                    } else {
+                        System.out.println("비밀번호 입력이 완료되었습니다.");
+                        break; // 올바른 비밀번호를 입력한 경우 루프를 종료
+                    }
+                }
+
+
+                System.out.print("이름을 입력하세요 >> ");
                 userName = sc.nextLine();
-                System.out.println("이메일을 입력하세요 (형식 email@address.com) >> ");
-                email = sc.nextLine();
-                System.out.println("전화번호를 입력하세요 >> ");
-                phoneNumber = sc.nextLine();
+                while (true) {
+                    System.out.print("이메일을 입력하세요 (형식 email@address.com) >> ");
+                    email = sc.nextLine();
 
-                // 입력된 전화번호의 유효성 검사
-                if (!isValidNumber(phoneNumber)) {
-                    System.out.println("유효하지 않은 전화번호 형식입니다. 다시 입력해주세요.");
-                    continue;
+                    // 입력된 이메일의 유효성 검사
+                    if (!isValidEmail(email)) {
+                        System.out.println("유효하지않은 이메일 형식입니다. 다시 입력해주세요");
+                    } else {
+                        break; // 올바른 이메일을 입력한 경우 루프를 종료
+                    }
+                }
+
+                while (true) {
+                    System.out.print("전화번호를 입력하세요 >> ");
+                    phoneNumber = sc.nextLine();
+
+                    // 입력된 전화번호의 유효성 검사
+                    if (!isValidNumber(phoneNumber)) {
+                        System.out.println("유효하지 않은 전화번호 형식입니다. 다시 입력해주세요.");
+                    } else {
+                        break; // 올바른 전화번호를 입력한 경우 루프를 종료
+                    }
                 }
 
                 // 모든 정보가 유효한 경우 회원가입 완료
@@ -65,11 +82,8 @@ public class UserMain {
                     "VALUES ('" + userId + "', '" + userPass + "', '" + userName + "', '" + email + "', '" + phoneNumber + "')";
             stmt.executeUpdate(sql);
 
-            System.out.println("회원가입이 완료되었습니다.");
-            System.out.println("ID >> : " + userId);
-            System.out.println("이름 >> " + userName);
-            System.out.println("이메일 >> " + email);
-            System.out.println("전화번호 >> " + phoneNumber);
+            // 회원가입된 정보 확인
+            userInfo(userId, userName, email, phoneNumber);
 
         } catch (SQLException se) {
             se.printStackTrace();
@@ -83,6 +97,7 @@ public class UserMain {
                 se.printStackTrace();
             }
         }
+        sc.close();
     }
 
 }
