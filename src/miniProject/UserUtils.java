@@ -1,8 +1,6 @@
 package miniProject;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -60,11 +58,27 @@ public class UserUtils {
 
     // 회원가입 정보를 확인하는 메소드
     public static void userInfo(String userId, String userName, String email, String phoneNumber) {
-        System.out.println("회원가입이 완료되었습니다.");
         System.out.println("ID >> : " + userId);
         System.out.println("이름 >> " + userName);
         System.out.println("이메일 >> " + email);
         System.out.println("전화번호 >> " + phoneNumber);
+    }
+
+    static void withdrawMember(Connection conn, Statement stmt, String userId) throws SQLException {
+        // 사용자 아이디로 회원 정보를 삭제하는 SQL 쿼리
+        String deleteQuery = "DELETE FROM USERINFO WHERE UserID = ?";
+        PreparedStatement pstmt = conn.prepareStatement(deleteQuery);
+        pstmt.setString(1, userId);
+
+        // SQL 쿼리 실행
+        int rowsAffected = pstmt.executeUpdate();
+
+        // 삭제된 행의 수를 확인하여 회원 탈퇴가 성공적으로 이루어졌는지 확인
+        if (rowsAffected > 0) {
+            System.out.println("회원 탈퇴가 완료되었습니다.");
+        } else {
+            System.out.println("회원 탈퇴에 실패했습니다. 다시 시도해주세요.");
+        }
     }
 }
 
