@@ -215,7 +215,7 @@ static int addTicket(Connection conn, Statement stmt, String userId, String team
         pstmt = conn.prepareStatement(insertQuery);
         pstmt.setString(1, team);
         pstmt.setString(2, date);
-        pstmt.setInt(3, 10); // 새 티켓은 10장 중 1장이 예매된 상태로 시작
+        pstmt.setInt(3, 9); // 새 티켓은 10장 중 1장이 예매된 상태로 시작
         pstmt.executeUpdate();
         remainingTickets = 9; // 새 티켓은 10장 중 1장이 예매된 상태로 시작
     }

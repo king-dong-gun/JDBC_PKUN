@@ -116,6 +116,9 @@ public class TicketMain {
                             System.out.print("회원 아이디를 입력하세요: ");
                             String deleteId = sc.nextLine();
                             withdrawMember(conn, stmt, deleteId);
+                            System.out.print("비밀번호를 입력하세요: ");
+                            String deletPSW = sc.nextLine();
+                            withdrawMember(conn, stmt, deletPSW);
                         } else {
                             System.out.println("옳바르지 않은 입력입니다.");
                         }
@@ -158,6 +161,17 @@ public class TicketMain {
 
                         System.out.print("날짜를 입력해주세요(예: 2024/MM/dd): ");
                         String date = sc.nextLine();
+                        String dateExist = "SELECT MATCH_DATE FROM HOMETEAM WHERE TEAMNAME = ? AND MATCH_DATE = ?";
+                        pstmt = conn.prepareStatement(dateExist);
+                        pstmt.setString(1, team);
+                        pstmt.setString(2, date);
+
+                        rs = pstmt.executeQuery();
+                        if (rs.next()) {
+                            System.out.println("해당날짜에 경기가 없습니다.");
+                        } else
+                            System.out.println("선택하신 경기 티켓 수량 정보입니다.");
+
 
                         // PreparedStatement를 사용하여 SQL Injection을 방지하고 사용자 입력을 처리
                         String selectQuery = "SELECT MAX_TICKETS FROM VIPTICKET WHERE TEAM = ? AND MATCH_DATE = ?";
@@ -167,112 +181,121 @@ public class TicketMain {
 
                         // 쿼리 실행
                         rs = pstmt.executeQuery();
+
                         if (rs.next()) {
-                            int maxTickets = rs.getInt("MAX_TICKETS");
-                            System.out.println("티켓 구매 가능 수량: " + maxTickets);
+                        int maxTickets = rs.getInt("MAX_TICKETS");
+                        System.out.println("티켓 구매 가능 수량: " + maxTickets);
 
-                        } else {
-                            System.out.println("해당 날짜에 경기가 없습니다.");
+                    } else {
+                        System.out.println("구매된 티켓이 없습니다.");
+                    }
 
+
+                break;
+
+                case 4:
+                    if (!loggedIn) {
+                        loggedIn = performLogin(sc, stmt);
+                    }
+                    // 사용자로부터 회원 정보 입력 받기
+                    System.out.println("===== 티켓 예약 =====");
+                    // 경기정보 불러오기
+                    String teamName = "";
+                    String matchDate = "";
+                    int maxTickets = 0; // 각 팀별 최대 티켓 예약 수량 변수
+                    boolean validMatchSelection = false;
+                    while (!validMatchSelection) {
+                        int match = getMatchSelection(sc);
+                        switch (match) {
+                            case 1:
+                                teamName = "맨체스터 유나이티드";
+                                maxTickets = MAX_ManUTickets;
+                                if (!checkTicketAvailability(stmt, matchDate, maxTickets)) continue;
+
+                                // 맨체스터 유나이티드의 홈 경기 정보 조회 메서드 호출
+                                getManUTDMatchInfo(stmt);
+                                validMatchSelection = true;
+                                break;
+                            case 2:
+                                teamName = "아스날";
+                                maxTickets = MAX_AsnTickets;
+                                if (!checkTicketAvailability(stmt, matchDate, maxTickets)) continue;
+
+                                // 아스날 홈 경기 정보 조회 메소드 호출
+                                getAsrMatchInfo(stmt);
+                                validMatchSelection = true;
+                                break;
+                            case 3:
+                                teamName = "첼시";
+                                maxTickets = MAX_CheTickets;
+                                if (!checkTicketAvailability(stmt, matchDate, maxTickets)) continue;
+                                // 첼시 홈 경기 정보 조회 메소드 호출
+                                getCheMatchInfo(stmt);
+                                validMatchSelection = true;
+
+
+                                break;
+                            case 4:
+                                teamName = "리버풀";
+                                maxTickets = MAX_LivTickets;
+                                if (!checkTicketAvailability(stmt, matchDate, maxTickets)) continue;
+                                // 리버풀 홈 경기 정보 조회 메소드 호출
+                                getLivMatchInfo(stmt);
+                                validMatchSelection = true;
+                                break;
+                            default:
+                                System.out.println("잘못된 입력입니다. 다시 시도해주세요.");
                         }
-                        break;
+                    }
+                    String reservDate;
 
-                    case 4:
-                        if (!loggedIn) {
-                            loggedIn = performLogin(sc, stmt);
-                        }
-                        // 사용자로부터 회원 정보 입력 받기
-                        System.out.println("===== 티켓 예약 =====");
-                        // 경기정보 불러오기
-                        String teamName = "";
-                        String matchDate = "";
-                        int maxTickets = 0; // 각 팀별 최대 티켓 예약 수량 변수
-                        boolean validMatchSelection = false;
-                        while (!validMatchSelection) {
-                            int match = getMatchSelection(sc);
-                            switch (match) {
-                                case 1:
-                                    teamName = "맨체스터 유나이티드";
-                                    maxTickets = MAX_ManUTickets;
-                                    if (!checkTicketAvailability(stmt, matchDate, maxTickets)) continue;
+                    while (true) {
+                        System.out.print("예매 날짜를 입력하세요(YYYY/MM/dd): ");
+                        reservDate = getValidDate(sc);
 
-                                    // 맨체스터 유나이티드의 홈 경기 정보 조회 메서드 호출
-                                    getManUTDMatchInfo(stmt);
-                                    validMatchSelection = true;
-                                    break;
-                                case 2:
-                                    teamName = "아스날";
-                                    maxTickets = MAX_AsnTickets;
-                                    if (!checkTicketAvailability(stmt, matchDate, maxTickets)) continue;
-
-                                    // 아스날 홈 경기 정보 조회 메소드 호출
-                                    getAsrMatchInfo(stmt);
-                                    validMatchSelection = true;
-                                    break;
-                                case 3:
-                                    teamName = "첼시";
-                                    maxTickets = MAX_CheTickets;
-                                    if (!checkTicketAvailability(stmt, matchDate, maxTickets)) continue;
-                                    // 첼시 홈 경기 정보 조회 메소드 호출
-                                    getCheMatchInfo(stmt);
-                                    validMatchSelection = true;
-
-
-                                    break;
-                                case 4:
-                                    teamName = "리버풀";
-                                    maxTickets = MAX_LivTickets;
-                                    if (!checkTicketAvailability(stmt, matchDate, maxTickets)) continue;
-                                    // 리버풀 홈 경기 정보 조회 메소드 호출
-                                    getLivMatchInfo(stmt);
-                                    validMatchSelection = true;
-                                    break;
-                                default:
-                                    System.out.println("잘못된 입력입니다. 다시 시도해주세요.");
-                            }
-                        }
-                        String reservDate;
-
-                        while (true) {
-                            System.out.print("예매 날짜를 입력하세요(YYYY/MM/dd): ");
-                            reservDate = getValidDate(sc);
-
-                            // 입력된 날짜가 존재하는지 확인
-                            if (isMatchDateValid(conn, reservDate)) {
-                                // 데이터베이스에 티켓 예약 정보 저장
-                                int remainingTickets = addTicket(conn, stmt, userId, teamName, reservDate, matchDate);
-                                if (remainingTickets > 0) {
-                                    printTicketInfo(stmt, reservDate);
-                                } else {
-                                    System.out.println("모든 티켓이 판매되었습니다.");
-                                }
-                                break; // 존재하는 경우 루프 종료
+                        // 입력된 날짜가 존재하는지 확인
+                        if (isMatchDateValid(conn, reservDate)) {
+                            // 데이터베이스에 티켓 예약 정보 저장
+                            int remainingTickets = addTicket(conn, stmt, userId, teamName, reservDate, matchDate);
+                            if (remainingTickets > 0) {
+                                printTicketInfo(stmt, reservDate);
                             } else {
-                                System.out.println("해당 일자의 경기가 존재하지 않습니다. 다시 입력해주세요.");
+                                System.out.println("모든 티켓이 판매되었습니다.");
                             }
+                            break; // 존재하는 경우 루프 종료
+                        } else {
+                            System.out.println("해당 일자의 경기가 존재하지 않습니다. 다시 입력해주세요.");
                         }
+                    }
 
-                } if (!continueBooking(sc)) {
-                    break;
-                }
             }
-
-        } catch (
-                ClassNotFoundException ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
-        } catch (
-                SQLException e) {
-            e.printStackTrace();
-        } finally {
-            // 리소스 해제
-            try {
-                if (stmt != null) stmt.close();
-                if (conn != null) conn.close();
-            } catch (SQLException se) {
-                se.printStackTrace();
+            if (!continueBooking(sc)) {
+                break;
             }
-            sc.close();
         }
+
+    } catch(
+    ClassNotFoundException ex)
+
+    {
+        ex.printStackTrace();
+        throw new RuntimeException(ex);
+    } catch(
+    SQLException e)
+
+    {
+        e.printStackTrace();
+    } finally
+
+    {
+        // 리소스 해제
+        try {
+            if (stmt != null) stmt.close();
+            if (conn != null) conn.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        }
+        sc.close();
     }
+}
 }
